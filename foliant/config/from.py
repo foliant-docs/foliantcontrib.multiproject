@@ -15,9 +15,9 @@ class Parser(BaseParser):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self._src_dir_path = self.project_path / 'src'
+        self._src_dir_path = self._defaults['src_dir']
         self._cache_dir_path = self.project_path / '.multiprojectcache'
-        self._subproject_config_file_name = 'foliant.yml'
+        self._subproject_config_file_name = self.config_path.name
 
         add_constructor('!from', self._resolve_from_tag)
 
@@ -116,7 +116,6 @@ class Parser(BaseParser):
             cwd=subproject_dir_path,
             shell=True,
             check=True,
-            stdout=PIPE,
             stderr=STDOUT
         )
 
