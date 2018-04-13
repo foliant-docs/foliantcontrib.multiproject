@@ -3,11 +3,10 @@ TODO
 '''
 
 from yaml import add_constructor, load
-from shutil import rmtree, move
+from shutil import move, rmtree
 from pathlib import Path
 from typing import Dict
 from subprocess import run, CalledProcessError, PIPE, STDOUT
-
 
 from foliant.config.base import BaseParser
 
@@ -16,7 +15,9 @@ class Parser(BaseParser):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        self._src_dir_path = self.project_path / 'src'
         self._cache_dir_path = self.project_path / '.multiprojectcache'
+        self._subproject_config_file_name = 'foliant.yml'
 
         add_constructor('!from', self._resolve_from_tag)
 
@@ -34,7 +35,14 @@ class Parser(BaseParser):
             )
 
         except CalledProcessError:
-            run('git pull', cwd=repo_path, shell=True, check=True, stdout=PIPE, stderr=STDOUT)
+            run(
+                'git pull',
+                cwd=repo_path,
+                shell=True,
+                check=True,
+                stdout=PIPE,
+                stderr=STDOUT
+            )
 
         if revision:
             run(
@@ -93,7 +101,7 @@ class Parser(BaseParser):
         else:
             subproject_dir_path = Path(subproject_location).expanduser()
 
-        subproject_config_file_path = subproject_dir_path / 'foliant.yml'
+        subproject_config_file_path = subproject_dir_path / self._subproject_config_file_name
 
         with open(subproject_config_file_path) as subproject_config_file:
             subproject_config = load(subproject_config_file)
@@ -104,7 +112,7 @@ class Parser(BaseParser):
         subproject_name = subproject_dir_path.name
 
         run(
-            f'foliant make pre',
+            'foliant make pre',
             cwd=subproject_dir_path,
             shell=True,
             check=True,
@@ -113,7 +121,8 @@ class Parser(BaseParser):
         )
 
         preprocessed_subproject_dir_path = sorted(subproject_dir_path.glob('*.pre'))[0]
-        rmtree(self.project_path / 'src' / subproject_name, ignore_errors=True)
-        move(preprocessed_subproject_dir_path, self.project_path / 'src' / subproject_name)
+
+        rmtree(self._src_dir_path / subproject_name, ignore_errors=True)
+        move(preprocessed_subproject_dir_path, self._src_dir_path / subproject_name)
 
         return self._get_chapters_with_overwritten_paths(subproject_chapters, subproject_name)
