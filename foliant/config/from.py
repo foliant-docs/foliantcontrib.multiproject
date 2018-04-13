@@ -15,11 +15,21 @@ class Parser(BaseParser):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self._src_dir_path = self._defaults['src_dir']
+        self._src_dir_path = self._get_src_dir_path()
         self._cache_dir_path = self.project_path / '.multiprojectcache'
         self._subproject_config_file_name = self.config_path.name
 
         add_constructor('!from', self._resolve_from_tag)
+
+    def _get_src_dir_path(self) -> Path:
+        def _fake_resolve_from_tag(_, node):
+            return node.value
+
+        add_constructor('!from', _fake_resolve_from_tag)
+
+        with open(self.config_path) as multiproject_config_file:
+            multiproject_config = {**self._defaults, **load(multiproject_config_file)}
+            return Path(multiproject_config['src_dir']).expanduser()
 
     def _sync_repo(self, repo_url: str, revision: str or None = None) -> Path:
         repo_name = repo_url.split('/')[-1].rsplit('.', maxsplit=1)[0]
