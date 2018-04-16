@@ -5,6 +5,7 @@ TODO
 from yaml import add_constructor, load
 from shutil import move, rmtree
 from pathlib import Path
+from importlib import import_module
 from typing import Dict
 from subprocess import run, CalledProcessError, PIPE, STDOUT
 
@@ -15,13 +16,13 @@ class Parser(BaseParser):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self._src_dir_path = self._get_src_dir_path()
+        self._src_dir_path = Path(self._get_multiproject_config()['src_dir']).expanduser()
         self._cache_dir_path = self.project_path / '.multiprojectcache'
         self._subproject_config_file_name = self.config_path.name
 
         add_constructor('!from', self._resolve_from_tag)
 
-    def _get_src_dir_path(self) -> Path:
+    def _get_multiproject_config(self) -> Dict:
         def _fake_resolve_from_tag(_, node):
             return node.value
 
@@ -29,7 +30,7 @@ class Parser(BaseParser):
 
         with open(self.config_path) as multiproject_config_file:
             multiproject_config = {**self._defaults, **load(multiproject_config_file)}
-            return Path(multiproject_config['src_dir']).expanduser()
+            return multiproject_config
 
     def _sync_repo(self, repo_url: str, revision: str or None = None) -> Path:
         repo_name = repo_url.split('/')[-1].rsplit('.', maxsplit=1)[0]
@@ -121,15 +122,10 @@ class Parser(BaseParser):
 
         subproject_name = subproject_dir_path.name
 
-        run(
-            'foliant make pre',
-            cwd=subproject_dir_path,
-            shell=True,
-            check=True,
-            stderr=STDOUT
-        )
+        make_module = import_module('foliant.cli.make')
+        preprocessed_subproject_dir_name = make_module.Cli().make(target='pre', project_path=subproject_dir_path)
 
-        preprocessed_subproject_dir_path = sorted(subproject_dir_path.glob('*.pre'))[0]
+        preprocessed_subproject_dir_path = Path(preprocessed_subproject_dir_name)
 
         rmtree(self._src_dir_path / subproject_name, ignore_errors=True)
         move(preprocessed_subproject_dir_path, self._src_dir_path / subproject_name)
