@@ -22,13 +22,13 @@ class Preprocessor(BasePreprocessor):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def add_repo_link(self, markdown_file_name: str, content: str) -> str:
+    def add_repo_link(self, markdown_file_relative_path: str, content: str) -> str:
         if self.options['repo_url']:
             repo_url = self.options['repo_url'].rstrip('/')
             edit_uri = self.options['edit_uri'].strip('/')
             repo_url_with_edit_uri = f'{repo_url}/{edit_uri}'.rstrip('/')
 
-            content += f'\n\n[Edit]({repo_url_with_edit_uri}/{markdown_file_name})'
+            content += f'\n\n[Edit]({repo_url_with_edit_uri}/{markdown_file_relative_path})'
 
         return content
 
@@ -38,4 +38,4 @@ class Preprocessor(BasePreprocessor):
                 content = markdown_file.read()
 
             with open(markdown_file_path, 'w', encoding='utf8') as markdown_file:
-                markdown_file.write(self.add_repo_link(markdown_file_path.name, content))
+                markdown_file.write(self.add_repo_link(f'{markdown_file_path.relative_to(self.working_dir)}', content))
