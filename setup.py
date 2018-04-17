@@ -20,7 +20,7 @@ setup(
     author='Artemy Lomov',
     author_email='artemy@lomov.ru',
     url='https://github.com/foliant-docs/foliantcontrib.multiproject',
-    packages=['foliant.config'],
+    packages=['foliant.config', 'foliant.cli', 'foliant.preprocessors'],
     license='MIT',
     platforms='any',
     install_requires=[
