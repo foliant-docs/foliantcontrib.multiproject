@@ -1,5 +1,14 @@
 '''
-TODO
+Extension for Foliant to generate the documentation from multiple sources.
+
+Resolves ``!from`` YAML tag in the project config.
+Replaces the value of the tag with ``chaptres`` section
+of related subproject. The subproject location may be
+specified as a local path, or as a Git repository with
+optional revision (branch name, commit hash or another
+reference). Examples: ``local_path``,
+``https://github.com/foliant-docs/docs.git``,
+``https://github.com/foliant-docs/docs.git#master``.
 '''
 
 from yaml import add_constructor, load
@@ -123,9 +132,7 @@ class Parser(BaseParser):
         subproject_name = subproject_dir_path.name
 
         make_module = import_module('foliant.cli.make')
-        preprocessed_subproject_dir_name = make_module.Cli().make(target='pre', project_path=subproject_dir_path)
-
-        preprocessed_subproject_dir_path = Path(preprocessed_subproject_dir_name)
+        preprocessed_subproject_dir_path = Path(make_module.Cli().make(target='pre', project_path=subproject_dir_path))
 
         rmtree(self._src_dir_path / subproject_name, ignore_errors=True)
         move(preprocessed_subproject_dir_path, self._src_dir_path / subproject_name)
