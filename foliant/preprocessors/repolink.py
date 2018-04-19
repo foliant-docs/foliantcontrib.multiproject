@@ -5,8 +5,6 @@ Allows to add a hyperlink to related file in Git repository
 into Markdown source.
 
 Provides ``repo_url`` and ``edit_uri`` options, same as MkDocs.
-Applies the styling like used in Material MkDocs theme
-to generated hyperlink.
 
 Useful for projects generated from multiple sources.
 '''
@@ -22,6 +20,9 @@ class Preprocessor(BasePreprocessor):
         'repo_url': '',
         'edit_uri': '/blob/master/src/',
         'link_text': 'Edit this page',
+        'link_title': 'Edit this page',
+        'link_html_attributes': '',
+        'targets': [],
     }
 
     def __init__(self, *args, **kwargs):
@@ -33,6 +34,11 @@ class Preprocessor(BasePreprocessor):
             edit_uri = self.options['edit_uri'].strip('/')
             repo_url_with_edit_uri = f'{repo_url}/{edit_uri}'.rstrip('/')
 
+            link_html_attributes = self.options['link_html_attributes']
+
+            if link_html_attributes:
+                link_html_attributes = ' ' + link_html_attributes
+
             first_heading_pattern = re.compile(
                 "^(?P<first_heading>\s*#{1,6}[ \t]+([^\r\n]+?)(?:[ \t]+\{#\S+\})?\s*[\r\n]+)"
             )
@@ -40,15 +46,14 @@ class Preprocessor(BasePreprocessor):
             content = re.sub(
                 first_heading_pattern,
                 f'\g<first_heading>\n\n<a href="{repo_url_with_edit_uri}/{markdown_file_relative_path}" ' \
-                f'title="{self.options["link_text"]}" class="md-icon md-content__icon" ' \
-                f'style="margin: -7.5rem 0">&#xE3C9;</a>\n\n',
+                f'title="{self.options["link_title"]}"{link_html_attributes}>{self.options["link_text"]}</a>\n\n',
                 content
             )
 
         return content
 
     def apply(self):
-        if self.context['backend'] != 'pandoc':
+        if not self.options['targets'] or self.context['target'] in self.options['targets']:
             for markdown_file_path in self.working_dir.rglob('*.md'):
                 with open(markdown_file_path, encoding='utf8') as markdown_file:
                     content = markdown_file.read()
