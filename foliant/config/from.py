@@ -165,12 +165,8 @@ class Parser(BaseParser):
 
         self.logger.debug('Calling Foliant to build the subproject')
 
-        multiproject_logger = self.logger
-
         make_module = import_module('foliant.cli.make')
-        preprocessed_subproject_dir_path = Path(make_module.Cli().make(target='pre', project_path=subproject_dir_path, debug=False))
-
-        self.logger = multiproject_logger
+        preprocessed_subproject_dir_path = Path(make_module.Cli().make(target='pre', project_path=subproject_dir_path, debug=self.logger))
 
         self.logger.debug(f'Moving built subproject to {self._src_dir_path / subproject_name}')
 
