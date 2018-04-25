@@ -50,7 +50,7 @@ class Parser(BaseParser):
         repo_name = repo_url.split('/')[-1].rsplit('.', maxsplit=1)[0]
         repo_path = self._cache_dir_path / repo_name
 
-        self.logger.debug(f'Synchronizing repo; URL: {repo_url}, revision: {revision}, name: {repo_name}, local path: {repo_path}')
+        self.logger.debug(f'Synchronizing repo; URL: {repo_url}, revision: {revision}, name: {repo_name}, project dir path: {self.project_path}, cache dir path: {self._cache_dir_path}, local path: {repo_path}')
 
         try:
             self.logger.debug(f'Cloning repo {repo_url} to {repo_path}')
@@ -63,17 +63,21 @@ class Parser(BaseParser):
                 stderr=STDOUT
             )
 
-        except CalledProcessError:
-            self.logger.debug('Cloning failed; maybe, repo already cloned; pulling from remote')
+        except CalledProcessError as exception:
+            if repo_path.exists():
+                self.logger.debug('Repo already cloned; pulling from remote')
 
-            run(
-                'git pull',
-                cwd=repo_path,
-                shell=True,
-                check=True,
-                stdout=PIPE,
-                stderr=STDOUT
-            )
+                run(
+                    'git pull',
+                    cwd=repo_path,
+                    shell=True,
+                    check=True,
+                    stdout=PIPE,
+                    stderr=STDOUT
+                )
+
+            else:
+                self.logger.error(str(exception))
 
         if revision:
             self.logger.debug(f'Checking out to revision: {revision}')
@@ -166,7 +170,9 @@ class Parser(BaseParser):
         self.logger.debug('Calling Foliant to build the subproject')
 
         make_module = import_module('foliant.cli.make')
-        preprocessed_subproject_dir_path = Path(make_module.Cli().make(target='pre', project_path=subproject_dir_path, debug=self.logger))
+        preprocessed_subproject_dir_path = Path(make_module.Cli().make(target='pre', project_path=subproject_dir_path, debug=False))
+
+        self.__init__(project_path=self.project_path, logger=self.logger, config_file_name=self.config_path.name)
 
         self.logger.debug(f'Moving built subproject to {self._src_dir_path / subproject_name}')
 
