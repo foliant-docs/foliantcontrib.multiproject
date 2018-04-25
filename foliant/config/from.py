@@ -15,6 +15,7 @@ from yaml import add_constructor, load
 from shutil import move, rmtree
 from pathlib import Path
 from importlib import import_module
+from logging import DEBUG
 from typing import Dict
 from subprocess import run, CalledProcessError, PIPE, STDOUT
 
@@ -26,7 +27,7 @@ class Parser(BaseParser):
         super().__init__(*args, **kwargs)
 
         self._src_dir_path = Path(self._get_multiproject_config()['src_dir']).expanduser()
-        self.logger = self.logger.getChild('from')
+        self.logger = kwargs.get('logger', self.logger.getChild('from'))
         self._cache_dir_path = self.project_path / '.multiprojectcache'
         self._subproject_config_file_name = self.config_path.name
 
@@ -169,8 +170,10 @@ class Parser(BaseParser):
 
         self.logger.debug('Calling Foliant to build the subproject')
 
+        subproject_debug_mode = True if self.logger.getEffectiveLevel() == DEBUG else False
+
         make_module = import_module('foliant.cli.make')
-        preprocessed_subproject_dir_path = Path(make_module.Cli().make(target='pre', project_path=subproject_dir_path, debug=False))
+        preprocessed_subproject_dir_path = Path(make_module.Cli().make(target='pre', project_path=subproject_dir_path, debug=subproject_debug_mode))
 
         self.__init__(project_path=self.project_path, logger=self.logger, config_file_name=self.config_path.name)
 
