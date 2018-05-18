@@ -16,7 +16,7 @@ $ pip install foliantcontrib.multiproject
 
 This extension resolves the `!from` YAML tag in the project config and replaces the value of the tag with `chaptres` section of related subproject.
 
-### Usage
+### Usage of the Config Extension
 
 The subproject location may be specified as a local path, or as a Git repository with optional revision (branch name, commit hash or another reference).
 
@@ -38,7 +38,7 @@ This extension supports the command `src` to backup the source directory of Foli
 
 Backing up of the source directory is needed because MultiProject extension modifies this directory by moving the directories of built subprojects into it.
 
-### Usage
+### Usage of the CLI Extension
 
 To make a backup of the source directory, use the command:
 
@@ -58,7 +58,7 @@ This preprocessor allows to add into each Markdown source a hyperlink to the rel
 
 The preprocessor emulates MkDocs behavior and supports the same options `repo_url` and `edit_uri` as MkDocs. Applying of the preprocessor to subprojects allows to get links to separate repositories from different pages of a single site (or a single MkDocs project).
 
-## Usage
+### Usage of the Preprocessor
 
 To enable the preprocessor, add `repolink` to `preprocessors` section in the project config:
 
