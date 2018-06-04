@@ -4,26 +4,29 @@ from shutil import move, copytree, rmtree
 from pathlib import Path
 from importlib import import_module
 from logging import DEBUG, WARNING
-from cliar import Cliar, set_metavars, set_help
+from cliar import Cliar, set_arg_map, set_metavars, set_help
 from foliant.config import Parser
 
 
 class Cli(Cliar):
+    @set_arg_map({'config_file_name': 'config'})
     @set_metavars({'action': 'ACTION'})
     @set_help(
         {
             'action': 'Action: backup, restore',
+            'config_file_name': 'Name of config file of the Foliant project',
             'debug': 'Log all events during build. If not set, only warnings and errors are logged'
         }
     )
-    def src(self, action, debug=False):
+    def src(self, action, config_file_name='foliant.yml', debug=False):
         '''Apply ACTION to the project directory.'''
 
         self.logger.setLevel(DEBUG if debug else WARNING)
 
         self.logger.info('Processing started')
+        self.logger.debug(f'Config file name: {config_file_name}')
 
-        src_dir_path = Path(Parser(Path('.'), self.logger, self.config_file_name)._get_multiproject_config()['src_dir']).expanduser()
+        src_dir_path = Path(Parser(Path('.'), config_file_name, self.logger)._get_multiproject_config()['src_dir']).expanduser()
         src_backup_dir_path = Path('__src_backup__')
 
         if action == 'backup':

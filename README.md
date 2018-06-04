@@ -52,6 +52,12 @@ To restore the source directory from the backup, use the command:
 $ foliant src restore
 ```
 
+You may use the `--config` option to specify custom config file name of your Foliant project. By default, the name `foliant.yml` is used:
+
+```bash
+$ foliant src backup --config alternative_config.yml
+```
+
 ## RepoLink Preprocessor
 
 This preprocessor allows to add into each Markdown source a hyperlink to the related file in Git repository. The hyperlink appears after the first heading of the document.
