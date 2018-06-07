@@ -32,6 +32,8 @@ chapters:
 
 Before building the documentation superproject, Multiproject extension calls Foliant to build each subproject into `pre` target, and then moves the directories of built subprojects into the source directory of the superproject (usually called as `src`).
 
+Note that Foliant allows to override default config file name `foliant.yml` by using `--config` or `-c` command line option. To provide correct working of Multiproject extension, the same names of config files should be used in the superproject and in all subprojects.
+
 ## CLI Extension for the `src` Command
 
 This extension supports the command `src` to backup the source directory of Foliant project (usually called as `src`) and to restore it from prepared backup.
