@@ -87,9 +87,6 @@ class Parser(BaseParser):
                     stderr=STDOUT
                 )
 
-            else:
-                self.logger.error(str(exception))
-
         if revision:
             self.logger.debug(f'Checking out to revision: {revision}')
 
@@ -101,6 +98,17 @@ class Parser(BaseParser):
                 stdout=PIPE,
                 stderr=STDOUT
             )
+
+        self.logger.debug('Updating submodules')
+
+        run(
+            'git submodule update --init',
+            cwd=repo_path,
+            shell=True,
+            check=True,
+            stdout=PIPE,
+            stderr=STDOUT
+        )
 
         return repo_path
 

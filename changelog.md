@@ -1,3 +1,7 @@
+# 1.0.5
+
+- Provide Git submodules support.
+
 # 1.0.4
 
 - Provide compatibility with Foliant 1.0.5. Allow to use multiple config files.
