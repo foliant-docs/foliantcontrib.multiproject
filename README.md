@@ -60,6 +60,8 @@ You may use the `--config` option to specify custom config file name of your Fol
 $ foliant src backup --config alternative_config.yml
 ```
 
+Also you may specify the root directory of your Foliant project by using the `--project-dir` option. If not specified, current directory will be used.
+
 ## RepoLink Preprocessor
 
 This preprocessor allows to add into each Markdown source a hyperlink to the related file in Git repository. The hyperlink appears after the first heading of the document.
