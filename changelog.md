@@ -1,3 +1,7 @@
+# 1.0.7
+
+- Allow to override the `edit_uri` config option of RepoLink preprocessor with the `FOLIANT_REPOLINK_EDIT_URI` system environment variable.
+
 # 1.0.6
 
 - Tidy up CLI arguments.

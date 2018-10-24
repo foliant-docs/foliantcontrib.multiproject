@@ -5,11 +5,14 @@ Allows to add a hyperlink to related file in Git repository
 into Markdown source.
 
 Provides ``repo_url`` and ``edit_uri`` options, same as MkDocs.
+The ``edit_uri`` option may be overridden with the
+``FOLIANT_REPOLINK_EDIT_URI`` system environment variable.
 
 Useful for projects generated from multiple sources.
 '''
 
 import re
+from os import getenv
 from pathlib import Path
 
 from foliant.preprocessors.base import BasePreprocessor
@@ -32,10 +35,10 @@ class Preprocessor(BasePreprocessor):
 
         self.logger.debug(f'Preprocessor inited: {self.__dict__}')
 
-    def _add_repo_link(self, markdown_file_relative_path: str, content: str) -> str:
+    def add_repo_link(self, markdown_file_relative_path: str, content: str) -> str:
         if self.options['repo_url']:
             repo_url = self.options['repo_url'].rstrip('/')
-            edit_uri = self.options['edit_uri'].strip('/')
+            edit_uri = getenv('FOLIANT_REPOLINK_EDIT_URI', self.options['edit_uri']).strip('/')
             repo_url_with_edit_uri = f'{repo_url}/{edit_uri}'.rstrip('/')
 
             link_html_attributes = self.options['link_html_attributes']
@@ -73,6 +76,8 @@ class Preprocessor(BasePreprocessor):
                     content = markdown_file.read()
 
                 with open(markdown_file_path, 'w', encoding='utf8') as markdown_file:
-                    markdown_file.write(self._add_repo_link(f'{markdown_file_path.relative_to(self.working_dir)}', content))
+                    markdown_file.write(
+                        self.add_repo_link(f'{markdown_file_path.relative_to(self.working_dir)}', content)
+                    )
 
         self.logger.info('Preprocessor applied')
