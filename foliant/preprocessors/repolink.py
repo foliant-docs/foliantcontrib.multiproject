@@ -75,9 +75,12 @@ class Preprocessor(BasePreprocessor):
                 with open(markdown_file_path, encoding='utf8') as markdown_file:
                     content = markdown_file.read()
 
-                with open(markdown_file_path, 'w', encoding='utf8') as markdown_file:
-                    markdown_file.write(
-                        self.add_repo_link(f'{markdown_file_path.relative_to(self.working_dir)}', content)
-                    )
+                processed_content = self.add_repo_link(
+                    f'{markdown_file_path.relative_to(self.working_dir)}', content
+                )
+
+                if processed_content:
+                    with open(markdown_file_path, 'w', encoding='utf8') as markdown_file:
+                        markdown_file.write(processed_content)
 
         self.logger.info('Preprocessor applied')
