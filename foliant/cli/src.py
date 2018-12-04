@@ -4,11 +4,12 @@ from shutil import move, copytree, rmtree
 from pathlib import Path
 from importlib import import_module
 from logging import DEBUG, WARNING
-from cliar import Cliar, set_arg_map, set_metavars, set_help
+from cliar import set_arg_map, set_metavars, set_help
 from foliant.config import Parser
+from foliant.cli.base import BaseCli
 
 
-class Cli(Cliar):
+class Cli(BaseCli):
     @set_arg_map(
         {
             'project_dir_path': 'project-dir',

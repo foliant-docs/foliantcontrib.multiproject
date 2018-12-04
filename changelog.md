@@ -1,3 +1,7 @@
+# 1.0.9
+
+-   Inherit the class `Cli` from `BaseCli`, not from `Cliar`.
+
 # 1.0.8
 
 -   Do not rewrite source Markdown file if an error occurs in RepoLink preprocessor.
