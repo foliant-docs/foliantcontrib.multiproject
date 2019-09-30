@@ -35,7 +35,7 @@ class Preprocessor(BasePreprocessor):
 
         self.logger.debug(f'Preprocessor inited: {self.__dict__}')
 
-    def add_repo_link(self, markdown_file_relative_path: str, content: str) -> str:
+    def add_repo_link(self, markdown_file_relative_path: Path, content: str) -> str:
         if self.options['repo_url']:
             repo_url = self.options['repo_url'].rstrip('/')
             edit_uri = getenv('FOLIANT_REPOLINK_EDIT_URI', self.options['edit_uri']).strip('/')
@@ -51,15 +51,17 @@ class Preprocessor(BasePreprocessor):
             if link_html_attributes:
                 link_html_attributes = ' ' + link_html_attributes
 
-            first_heading_pattern = re.compile(
-                "^(?P<first_heading>\s*#{1,6}[ \t]+([^\r\n]+?)(?:[ \t]+\{#\S+\})?\s*[\r\n]+)"
+            heading_pattern = re.compile(
+                r'^(?P<heading>\#{1,6}\s+.*\S+\s*)$',
+                flags=re.MULTILINE
             )
 
             content = re.sub(
-                first_heading_pattern,
-                f'\g<first_heading>\n\n<a href="{repo_url_with_edit_uri}/{markdown_file_relative_path}" ' \
+                heading_pattern,
+                f'\g<heading>\n\n<a href="{repo_url_with_edit_uri}/{markdown_file_relative_path}" ' \
                 f'title="{self.options["link_title"]}"{link_html_attributes}>{self.options["link_text"]}</a>\n\n',
-                content
+                content,
+                count=1
             )
 
         return content
@@ -72,6 +74,8 @@ class Preprocessor(BasePreprocessor):
 
         if not self.options['targets'] or self.context['target'] in self.options['targets']:
             for markdown_file_path in self.working_dir.rglob('*.md'):
+                self.logger.debug(f'Processing the file: {markdown_file_path}')
+
                 with open(markdown_file_path, encoding='utf8') as markdown_file:
                     content = markdown_file.read()
 

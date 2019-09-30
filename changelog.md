@@ -1,3 +1,7 @@
+# 1.0.10
+
+-   Allow the first heading to be located not in the beginning of a document.
+
 # 1.0.9
 
 -   Inherit the class `Cli` from `BaseCli`, not from `Cliar`.
