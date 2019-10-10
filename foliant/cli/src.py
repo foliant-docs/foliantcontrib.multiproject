@@ -2,9 +2,9 @@
 
 from shutil import move, copytree, rmtree
 from pathlib import Path
-from importlib import import_module
 from logging import DEBUG, WARNING
 from cliar import set_arg_map, set_metavars, set_help
+
 from foliant.config import Parser
 from foliant.cli.base import BaseCli
 
@@ -12,7 +12,7 @@ from foliant.cli.base import BaseCli
 class Cli(BaseCli):
     @set_arg_map(
         {
-            'project_dir_path': 'project-dir',
+            'project_dir_path': 'path',
             'config_file_name': 'config',
         }
     )
@@ -25,7 +25,13 @@ class Cli(BaseCli):
             'debug': 'Log all events during build. If not set, only warnings and errors are logged'
         }
     )
-    def src(self, action, project_dir_path=Path('.'), config_file_name='foliant.yml', debug=False):
+    def src(
+        self,
+        action: str,
+        project_dir_path: Path = Path('.').resolve(),
+        config_file_name: str = 'foliant.yml',
+        debug: bool = False
+    ):
         '''Apply ACTION to the project directory.'''
 
         self.logger.setLevel(DEBUG if debug else WARNING)
@@ -38,21 +44,27 @@ class Cli(BaseCli):
         )
 
         src_dir_path = Path(
-            Parser(project_dir_path, config_file_name, self.logger)._get_multiproject_config()['src_dir']
-        ).expanduser()
+            Parser(
+                project_dir_path,
+                config_file_name,
+                self.logger
+            )._get_multiproject_config()['src_dir']
+        ).resolve()
 
-        src_backup_dir_path = project_dir_path / '__src_backup__'
+        src_backup_dir_path = (project_dir_path / '__src_backup__').resolve()
 
         if action == 'backup':
             self.logger.debug('Backing up the source directory')
 
             rmtree(src_backup_dir_path, ignore_errors=True)
             copytree(src_dir_path, src_backup_dir_path)
+
         elif action == 'restore':
             self.logger.debug('Restoring the source directory')
 
             rmtree(src_dir_path, ignore_errors=True)
             move(src_backup_dir_path, src_dir_path)
+
         else:
             error_message = f'Unrecognized ACTION specified: {action}'
 

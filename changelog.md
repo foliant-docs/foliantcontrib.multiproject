@@ -1,3 +1,9 @@
+# 1.0.11
+
+-   Allow recursive processing of nested subprojects.
+-   Allow to specify type (HTML/Markdown) and location for repo links.
+-   Fix incompatibility with new Cliar: key names should not contain hyphens.
+
 # 1.0.10
 
 -   Allow the first heading to be located not in the beginning of a document.
