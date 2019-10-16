@@ -131,7 +131,12 @@ class Parser(BaseParser):
             subproject_cached_dir_path / self._build_subproject(subproject_cached_dir_path)
         ).resolve()
 
-        self.__init__(project_path=self.project_path, config_file_name=self._config_file_name, logger=self.logger)
+        self.__init__(
+            project_path=self.project_path,
+            config_file_name=self._config_file_name,
+            logger=self.logger,
+            quiet=self.quiet
+        )
 
         subproject_target_dir_path = (
             self.project_path / self._src_dir_name / subproject_cached_dir_path.name
@@ -161,6 +166,7 @@ class Parser(BaseParser):
         subproject_built_dir_name = foliant_cli_module.Foliant().make(
             target='pre',
             project_path=subproject_cached_dir_path,
+            quiet=self.quiet,
             debug=subproject_debug_mode
         )
 

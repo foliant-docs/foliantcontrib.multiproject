@@ -1,3 +1,7 @@
+# 1.0.12
+
+-   Take into account the `quiet` flag. Require Foliant 1.0.11 for this reason.
+
 # 1.0.11
 
 -   Allow recursive processing of nested subprojects.

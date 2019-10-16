@@ -24,7 +24,7 @@ setup(
     license='MIT',
     platforms='any',
     install_requires=[
-        'foliant>=1.0.5'
+        'foliant>=1.0.11'
     ],
     classifiers=[
         "Development Status :: 5 - Production/Stable",
