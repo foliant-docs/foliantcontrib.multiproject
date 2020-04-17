@@ -167,6 +167,7 @@ class Parser(BaseParser):
             target='pre',
             project_path=subproject_cached_dir_path,
             quiet=self.quiet,
+            keep_tmp=True,
             debug=subproject_debug_mode
         )
 

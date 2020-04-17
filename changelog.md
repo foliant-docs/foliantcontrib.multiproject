@@ -1,3 +1,7 @@
+# 1.0.13
+
+-   Keep temporary directories of built subprojects. It is needed when local includes that rewrite image paths are used.
+
 # 1.0.12
 
 -   Take into account the `quiet` flag. Require Foliant 1.0.11 for this reason.
