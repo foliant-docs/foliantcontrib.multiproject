@@ -1,3 +1,5 @@
+[![](https://img.shields.io/pypi/v/foliantcontrib.multiproject.svg)](https://pypi.org/project/foliantcontrib.multiproject/) [![](https://img.shields.io/github/v/tag/foliant-docs/foliantcontrib.multiproject.svg?label=GitHub)](https://github.com/foliant-docs/foliantcontrib.multiproject)
+
 # MultiProject Extension
 
 MultiProject is an extension for Foliant to generate the documentation from multiple sources. MultiProject consists of three parts:
@@ -113,7 +115,7 @@ preprocessors:
 :   Link type: HTML (`html`) or Markdown (`markdown`). Default value is `html`.
 
 `link_location`
-:   Place in the document to put the hyperlink. By default, the hyperlink is placed after the first heading, and newlines are added before and after it (`after_first_heading`). Other values: `before_content`—the hyperlink is placed before the content of the document, the newline after it is provided; `after_content`—the hyperlink is placed after the content of the document, the newline before it is added; `defined_by_tag`—the tags `<<repo_link></repo_link>` that are met in the content of the document are replaced with the hyperlink.
+:   Place in the document to put the hyperlink. By default, the hyperlink is placed after the first heading, and newlines are added before and after it (`after_first_heading`). Other values: `before_content`—the hyperlink is placed before the content of the document, the newline after it is provided; `after_content`—the hyperlink is placed after the content of the document, the newline before it is added; `defined_by_tag`—the tags `<repo_link></repo_link>` that are met in the content of the document are replaced with the hyperlink.
 
 `link_text`
 :   Hyperlink text. Default value is `Edit this page`.
