@@ -15,7 +15,7 @@ from yaml import add_constructor, load, Loader, BaseLoader
 from shutil import copytree, move, rmtree
 from os import chdir, getcwd
 from pathlib import Path
-from logging import DEBUG
+from logging import getLogger, FileHandler, DEBUG
 from importlib import import_module
 from subprocess import run, CalledProcessError, PIPE, STDOUT
 
@@ -156,6 +156,13 @@ class Parser(BaseParser):
             f'Calling Foliant to build the subproject that is located at: {subproject_cached_dir_path}'
         )
 
+        root_logger = getLogger('flt')
+
+        for root_logger_handler in root_logger.handlers:
+            if isinstance(root_logger_handler, FileHandler):
+                logs_dir_path = Path(root_logger_handler.baseFilename).resolve().parent
+                break
+
         source_cwd = getcwd()
         chdir(subproject_cached_dir_path)
 
@@ -163,13 +170,18 @@ class Parser(BaseParser):
 
         foliant_cli_module = import_module('foliant.cli')
 
+        multiproject_logger = self.logger
+
         subproject_built_dir_name = foliant_cli_module.Foliant().make(
             target='pre',
             project_path=subproject_cached_dir_path,
+            logs_dir=logs_dir_path,
             quiet=self.quiet,
             keep_tmp=True,
             debug=subproject_debug_mode
         )
+
+        self.logger = multiproject_logger
 
         chdir(source_cwd)
 

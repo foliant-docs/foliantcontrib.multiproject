@@ -1,3 +1,7 @@
+# 1.0.14
+
+-   Support Foliant Core 1.0.12, write logs to the directory that is specified for the multiproject.
+
 # 1.0.13
 
 -   Keep temporary directories of built subprojects. It is needed when local includes that rewrite image paths are used.
