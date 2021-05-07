@@ -1,3 +1,7 @@
+# 1.0.15
+
+-   Fix crash caused by YAML-tags in subproject config.
+
 # 1.0.14
 
 -   Support Foliant Core 1.0.12, write logs to the directory that is specified for the multiproject.

@@ -22,6 +22,41 @@ from subprocess import run, CalledProcessError, PIPE, STDOUT
 from foliant.config.base import BaseParser
 
 
+class TempAttrs():
+    """
+    Temporarily set attributes on an object for the duration of the
+    context manager.
+
+    Usage:
+
+    with TempAttrs(obj, attr1='val1', attr2='val2'):
+        ...
+    """
+
+    def __init__(self, obj, **kwargs):
+        self.missing = []
+        self.present = {}
+        self.to_set = kwargs
+        self.obj = obj
+
+        for attr in kwargs:
+            if hasattr(obj, attr):
+                self.present[attr] = getattr(self.obj, attr)
+            else:
+                self.missing.append(attr)
+
+    def __enter__(self):
+        for attr, val in self.to_set.items():
+            setattr(self.obj, attr, val)
+
+    def __exit__(self, exc_type, exc_value, exc_traceback):
+        for missing_attr in self.missing:
+            delattr(self.obj, missing_attr)
+
+        for present_attr, val in self.present.items():
+            setattr(self.obj, present_attr, val)
+
+
 class Parser(BaseParser):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -32,6 +67,9 @@ class Parser(BaseParser):
 
         add_constructor('!from', self._resolve_from_tag_to_build)
 
+        self.logger = self.logger.getChild('multiproject')
+        self.logger.debug(f'Extension inited: {self.__dict__}')
+
     def _get_multiproject_config(self) -> dict:
         self.logger.debug('Getting config of the multiproject')
 
@@ -41,67 +79,6 @@ class Parser(BaseParser):
             self.logger.debug(f'Config of the multiproject: {multiproject_config}')
 
             return multiproject_config
-
-    def _get_subproject_config(
-            self,
-            subproject_cached_dir_path: Path,
-            previous_subproject_cached_dir_path: Path or None = None
-        ) -> dict:
-        self.logger.debug(
-            f'Subprojects to get config, current: {subproject_cached_dir_path}, ' +
-            f'previous: {previous_subproject_cached_dir_path}'
-        )
-
-        def _resolve_from_tag_to_get_chapters(loader, node):
-            nested_subproject_pointer = node.value
-
-            self.logger.debug(
-                f'Nested subproject detected, pointer: {nested_subproject_pointer}, getting path'
-            )
-
-            nested_subproject_cached_dir_path = self._get_cached_subproject_dir_path(
-                nested_subproject_pointer,
-                subproject_cached_dir_path
-            )
-
-            self.logger.debug(f'Path of nested subproject to get config: {nested_subproject_cached_dir_path}')
-
-            previous_subproject_cached_dir_path = subproject_cached_dir_path
-
-            nested_subproject_config = self._get_subproject_config(
-                nested_subproject_cached_dir_path,
-                previous_subproject_cached_dir_path
-            )
-
-            self.logger.debug(f'Config of nested subproject: {nested_subproject_config}')
-
-            nested_subproject_chapters = {
-                nested_subproject_config.get('title', ''): self._get_chapters_with_overwritten_paths(
-                    nested_subproject_config.get('chapters', []),
-                    nested_subproject_cached_dir_path
-                )
-            }
-
-            self.logger.debug(f'Chapters of nested subproject: {nested_subproject_chapters}')
-
-            return nested_subproject_chapters
-
-        add_constructor('!from', _resolve_from_tag_to_get_chapters)
-
-        subproject_config_file_path = (
-            subproject_cached_dir_path / self._config_file_name
-        ).resolve()
-
-        self.logger.debug(f'Reading subproject config file: {subproject_config_file_path}')
-
-        with open(subproject_config_file_path) as subproject_config_file:
-            subproject_config = load(subproject_config_file, Loader)
-
-        self.logger.debug(f'Subproject config: {subproject_config}')
-
-        subproject_cached_dir_path = previous_subproject_cached_dir_path
-
-        return subproject_config
 
     def _resolve_from_tag_to_build(self, loader, node) -> dict:
         subproject_pointer = node.value
@@ -151,6 +128,120 @@ class Parser(BaseParser):
 
         return subproject_chapters
 
+    def _get_cached_subproject_dir_path(
+        self,
+        subproject_pointer: str,
+        multiproject_dir_path: Path
+    ) -> Path:
+        """
+        If `subproject_pointer` is a link, download repo and copy to cache.
+        If `subproject_pointer` is a local path, copy it to cache.
+
+        Return path to copied project in cache.
+        """
+
+        self.logger.debug(f'Resolving subproject pointer: {subproject_pointer}')
+
+        if subproject_pointer.find('://') >= 0:
+            subproject_pointer_parts = subproject_pointer.split('#', maxsplit=1)
+            repo_url = subproject_pointer_parts[0]
+            revision = None
+
+            if len(subproject_pointer_parts) == 2:
+                revision = subproject_pointer_parts[1]
+
+            self.logger.debug(
+                f'Subproject location is the remote repo: {repo_url}, revision: {revision}'
+            )
+
+            subproject_cached_dir_path = self._sync_repo(multiproject_dir_path, repo_url, revision)
+
+        else:
+            subproject_source_dir_path = Path(multiproject_dir_path / subproject_pointer).resolve()
+
+            self.logger.debug(f'Subproject location is the local path: {subproject_source_dir_path}')
+
+            subproject_cached_dir_path = (
+                multiproject_dir_path / self._cache_dir_name / subproject_source_dir_path.name
+            ).resolve()
+
+            if (
+                self._cache_dir_name in self.project_path.resolve().parts
+                and
+                subproject_cached_dir_path.exists()
+            ):
+                self.logger.debug('Subproject already copied into cache')
+
+            else:
+                self.logger.debug('Copying the subproject into cache')
+
+                rmtree(subproject_cached_dir_path, ignore_errors=True)
+                copytree(subproject_source_dir_path, subproject_cached_dir_path)
+
+        self.logger.debug(f'Subproject stored in cache: {subproject_cached_dir_path}')
+
+        return subproject_cached_dir_path
+
+    def _get_subproject_config(
+        self,
+        subproject_cached_dir_path: Path,
+        previous_subproject_cached_dir_path: Path or None = None
+    ) -> dict:
+        self.logger.debug(
+            f'Subprojects to get config, current: {subproject_cached_dir_path}, '
+            f'previous: {previous_subproject_cached_dir_path}'
+        )
+
+        def _resolve_from_tag_to_get_chapters(loader, node):
+            nested_subproject_pointer = node.value
+
+            self.logger.debug(
+                f'Nested subproject detected, pointer: {nested_subproject_pointer}, getting path'
+            )
+
+            nested_subproject_cached_dir_path = self._get_cached_subproject_dir_path(
+                nested_subproject_pointer,
+                subproject_cached_dir_path
+            )
+
+            self.logger.debug(f'Path of nested subproject to get config: {nested_subproject_cached_dir_path}')
+
+            previous_subproject_cached_dir_path = subproject_cached_dir_path
+
+            nested_subproject_config = self._get_subproject_config(
+                nested_subproject_cached_dir_path,
+                previous_subproject_cached_dir_path
+            )
+
+            self.logger.debug(f'Config of nested subproject: {nested_subproject_config}')
+
+            nested_subproject_chapters = {
+                nested_subproject_config.get('title', ''): self._get_chapters_with_overwritten_paths(
+                    nested_subproject_config.get('chapters', []),
+                    nested_subproject_cached_dir_path
+                )
+            }
+
+            self.logger.debug(f'Chapters of nested subproject: {nested_subproject_chapters}')
+
+            return nested_subproject_chapters
+
+        add_constructor('!from', _resolve_from_tag_to_get_chapters)
+
+        subproject_config_file_path = (subproject_cached_dir_path / self._config_file_name).resolve()
+
+        self.logger.debug(f'Reading subproject config file: {subproject_config_file_path}')
+
+        with open(subproject_config_file_path) as subproject_config_file:
+            with TempAttrs(self, project_path=subproject_cached_dir_path, config_path=subproject_config_file):
+                subproject_config = load(subproject_config_file, Loader)
+
+        self.logger.debug(f'Subproject config: {subproject_config}')
+
+        subproject_cached_dir_path = previous_subproject_cached_dir_path
+
+        return subproject_config
+
     def _build_subproject(self, subproject_cached_dir_path: Path) -> str:
         self.logger.debug(
             f'Calling Foliant to build the subproject that is located at: {subproject_cached_dir_path}'
@@ -186,55 +277,6 @@ class Parser(BaseParser):
         chdir(source_cwd)
 
         return subproject_built_dir_name
-
-    def _get_cached_subproject_dir_path(
-        self,
-        subproject_pointer: str,
-        multiproject_dir_path: Path
-    ) -> Path:
-        self.logger.debug(f'Resolving subproject pointer: {subproject_pointer}')
-
-        if subproject_pointer.find('://') >= 0:
-            subproject_pointer_parts = subproject_pointer.split('#', maxsplit=1)
-            repo_url = subproject_pointer_parts[0]
-            revision = None
-
-            if len(subproject_pointer_parts) == 2:
-                revision = subproject_pointer_parts[1]
-
-            self.logger.debug(
-                f'Subproject location is the remote repo: {repo_url}, revision: {revision}'
-            )
-
-            subproject_cached_dir_path = self._sync_repo(multiproject_dir_path, repo_url, revision)
-
-        else:
-            subproject_source_dir_path = Path(multiproject_dir_path / subproject_pointer).resolve()
-
-            self.logger.debug(f'Subproject location is the local path: {subproject_source_dir_path}')
-
-            subproject_cached_dir_path = (
-                multiproject_dir_path /
-                self._cache_dir_name /
-                subproject_source_dir_path.name
-            ).resolve()
-
-            if (
-                self._cache_dir_name in self.project_path.resolve().parts
-                and
-                subproject_cached_dir_path.exists()
-            ):
-                self.logger.debug('Subproject already copied into cache')
-
-            else:
-                self.logger.debug('Copying the subproject into cache')
-
-                rmtree(subproject_cached_dir_path, ignore_errors=True)
-                copytree(subproject_source_dir_path, subproject_cached_dir_path)
-
-        self.logger.debug(f'Subproject stored in cache: {subproject_cached_dir_path}')
-
-        return subproject_cached_dir_path
 
     def _sync_repo(
         self,
