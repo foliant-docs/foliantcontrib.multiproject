@@ -14,7 +14,7 @@ MultiProject is an extension for Foliant to generate the documentation from mult
 $ pip install foliantcontrib.multiproject
 ```
 
-## Config Extension to Resolve the `!from` Tag
+## Config Extension to Resolve the !from Tag
 
 This extension resolves the `!from` YAML tag in the project config and replaces the value of the tag with `chaptres` section of related subproject.
 
@@ -44,7 +44,7 @@ Limitations:
 * subprojects from remote Git repositories do not need to be newly cloned before each build, but local subprojects are copied into cache before each build;
 * it’s undesirable if the path of the “root” directory of the top-level project contains `.multiprojectcache` directory as its some part.
 
-## CLI Extension for the `src` Command
+## CLI Extension for the src Command
 
 This extension supports the command `src` to backup the source directory of Foliant project (usually called as `src`) and to restore it from prepared backup.
 
