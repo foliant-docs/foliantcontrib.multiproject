@@ -16,7 +16,7 @@ $ pip install foliantcontrib.multiproject
 
 ## Config Extension to Resolve the !from Tag
 
-This extension resolves the `!from` YAML tag in the project config and replaces the value of the tag with `chaptres` section of related subproject.
+This extension resolves the `!from` YAML tag in the project config and replaces the value of the tag with `chapters` section of related subproject.
 
 Nested subprojects are processed recursively.
 
