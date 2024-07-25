@@ -28,12 +28,13 @@ class Preprocessor(BasePreprocessor):
             path = map.relative_to(self.working_dir)
             with open(map, encoding='utf8') as f:
                 data = f.read()
-                if data:
-                    dir = path.parent
-                    if dir != Path("static"):
-                        dir = dir.parent
-                    obj = json.loads(data)
-                    self.multiproject_includes_map.append({f"{dir.as_posix()}": obj})
+
+            if data:
+                dir = path.parent
+                if dir != Path("static"):
+                    dir = dir.parent
+                obj = json.loads(data)
+                self.multiproject_includes_map.append({f"{dir.as_posix()}": obj})
         
         Path(f'{self.working_dir}/static/').mkdir(parents=True, exist_ok=True)
         with open(f'{self.working_dir}/static/multiproject_includes_map.json', 'w', encoding='utf8') as f:
