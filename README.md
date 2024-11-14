@@ -6,7 +6,8 @@ MultiProject is an extension for Foliant to generate the documentation from mult
 
 * extension for `foliant.config` package to resolve the `!from` YAML tag;
 * CLI extension for the `src` command;
-* RepoLink preprocessor.
+* RepoLink preprocessor;
+* Includesmap preprocessor.
 
 ## Installation
 
@@ -130,3 +131,19 @@ preprocessors:
 :   Allowed targets for the preprocessor. If not specified (by default), the preprocessor applies to all targets.
 
 You may override the value of the `edit_uri` config option with the `FOLIANT_REPOLINK_EDIT_URI` system environment variable. It can be useful in some non-stable testing or staging environments.
+
+## Includesmap Preprocessor
+
+This preprocessor combines the includes maps (`includes_map.json`) obtained as a result of the [preprocessor includes](https://github.com/foliant-docs/foliantcontrib.includes) with the `includes_map` function enabled.
+The combined includes map (`multiproject_includes_map.json`) will be located in the root of the site.
+
+### Usage of the Preprocessor
+
+To enable the preprocessor, add `includesmap` to `preprocessors` section in the config of the main project:
+
+```yaml
+preprocessors:
+    - includesmap
+```
+
+> There is no need to add the Includesmap preprocessor to subproject configs.
