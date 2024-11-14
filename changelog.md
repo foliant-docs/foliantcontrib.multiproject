@@ -1,3 +1,7 @@
+# 1.0.16
+
+-   Added a preprocessor for merging the includes maps
+
 # 1.0.15
 
 -   Fix crash caused by YAML-tags in subproject config.
