@@ -11,7 +11,7 @@ reference). Examples: ``local_path``,
 ``https://github.com/foliant-docs/docs.git#master``.
 '''
 
-from yaml import add_constructor, load, Loader, BaseLoader
+from yaml import add_constructor, load, Loader, BaseLoader, safe_load
 from shutil import copytree, move, rmtree
 from os import chdir, getcwd
 from pathlib import Path
@@ -255,6 +255,17 @@ class Parser(BaseParser):
                 break
 
         source_cwd = getcwd()
+        partial_build = []
+        _partial_build_config = Path(source_cwd + "/partial_build.yml")
+        if _partial_build_config.exists():
+            with open(_partial_build_config, 'r', encoding='utf-8') as file:
+                yaml_data = safe_load(file)
+                dir_name = subproject_cached_dir_path.name
+                if dir_name in yaml_data:
+                    partial_build = yaml_data[dir_name]
+
+        self.logger.debug(f'Subproject partial build list: {partial_build}')
+
         chdir(subproject_cached_dir_path)
 
         subproject_debug_mode = True if self.logger.getEffectiveLevel() == DEBUG else False
@@ -269,6 +280,7 @@ class Parser(BaseParser):
             logs_dir=logs_dir_path,
             quiet=self.quiet,
             keep_tmp=True,
+            only_partial=partial_build,
             debug=subproject_debug_mode
         )
 
