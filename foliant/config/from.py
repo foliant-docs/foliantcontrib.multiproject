@@ -263,6 +263,8 @@ class Parser(BaseParser):
                 dir_name = subproject_cached_dir_path.name
                 if dir_name in yaml_data:
                     partial_build = yaml_data[dir_name]
+        else:
+            self.logger.debug(f'Subproject partial build list not found: {_partial_build_config}')
 
         self.logger.debug(f'Subproject partial build list: {partial_build}')
 
