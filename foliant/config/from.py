@@ -282,7 +282,7 @@ class Parser(BaseParser):
             logs_dir=logs_dir_path,
             quiet=self.quiet,
             keep_tmp=True,
-            only_partial=partial_build,
+            only_partial=','.join(partial_build),
             debug=subproject_debug_mode
         )
 
