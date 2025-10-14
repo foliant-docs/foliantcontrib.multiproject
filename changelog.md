@@ -1,3 +1,7 @@
+# 1.0.17
+
+-   Added the ability to transfer a list of files via `partial_build.yml`.
+
 # 1.0.16
 
 -   Added a preprocessor for merging the includes maps
