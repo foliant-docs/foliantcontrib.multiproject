@@ -73,6 +73,16 @@ $ foliant src backup --config alternative_config.yml
 
 Also you may specify the root directory of your Foliant project by using the `--path` option. If not specified, current directory will be used.
 
+## Partial build
+
+To use the partial build features (added in foliant 1.0.14), add `partial_build.yml` file, with the following structure:
+
+```yml
+project_name:
+    - src/file_1.md
+    - src/dir/file_2.md
+```
+
 ## RepoLink Preprocessor
 
 This preprocessor allows to add into each Markdown source a hyperlink to the related file in Git repository. Applying of the preprocessor to subprojects allows to get links to separate repositories from different pages of a single site (e.g. generated with MkDocs).
